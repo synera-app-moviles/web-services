@@ -1,0 +1,54 @@
+package synera.centralis.api.iam.infrastructure.persistence.jpa.repositories;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import synera.centralis.api.iam.domain.model.aggregates.User;
+
+/**
+ * This interface is responsible for providing the User entity related operations.
+ * It extends the JpaRepository interface.
+ */
+@Repository
+public interface UserRepository extends JpaRepository<User, UUID>
+{
+    /**
+     * This method is responsible for finding the user by username.
+     * @param username The username.
+     * @return The user object.
+     */
+    Optional<User> findByUsername(String username);
+
+    /**
+     * This method is responsible for checking if the user exists by username.
+     * @param username The username.
+     * @return True if the user exists, false otherwise.
+     */
+    boolean existsByUsername(String username);
+
+    /**
+     * This method is responsible for finding users by department id.
+     * @param departmentId The department id.
+     * @return The list of users.
+     */
+    List<User> findByDepartmentId(UUID departmentId);
+
+    /**
+     * This method is responsible for finding user by email.
+     * @param email The email.
+     * @return The user object.
+     */
+    Optional<User> findByEmail(String email);
+
+    /**
+     * This method is responsible for checking if the user exists by email.
+     * @param email The email.
+     * @return True if the user exists, false otherwise.
+     */
+    boolean existsByEmail(String email);
+
+}
