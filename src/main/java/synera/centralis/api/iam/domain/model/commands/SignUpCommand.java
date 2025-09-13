@@ -1,7 +1,6 @@
 package synera.centralis.api.iam.domain.model.commands;
 
 import java.util.List;
-import java.util.UUID;
 
 import synera.centralis.api.iam.domain.model.entities.Role;
 
@@ -15,7 +14,6 @@ import synera.centralis.api.iam.domain.model.entities.Role;
  * @param name the first name of the user
  * @param lastname the last name of the user
  * @param email the email of the user
- * @param departmentId the department ID of the user
  * @param roles the roles of the user
  */
 public record SignUpCommand(
@@ -24,7 +22,6 @@ public record SignUpCommand(
     String name, 
     String lastname, 
     String email, 
-    UUID departmentId, 
     List<Role> roles
 ) {
     public SignUpCommand {

@@ -1,7 +1,5 @@
 package synera.centralis.api.iam.interfaces.rest.resources;
 
-import java.util.UUID;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,9 +24,6 @@ public record UpdateUserResource(
     @Email(message = "Email must be valid")
     @NotBlank(message = "Email cannot be blank")
     @Size(max = 150, message = "Email must not exceed 150 characters")
-    String email,
-    
-    @Schema(description = "Department ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    UUID departmentId
+    String email
 ) {
 }

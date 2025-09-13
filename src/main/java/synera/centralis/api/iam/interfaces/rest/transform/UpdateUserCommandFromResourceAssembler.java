@@ -21,8 +21,7 @@ public class UpdateUserCommandFromResourceAssembler {
                 userId,
                 resource.name(),
                 resource.lastname(),
-                resource.email(),
-                resource.departmentId()
+                resource.email()
         );
     }
 }

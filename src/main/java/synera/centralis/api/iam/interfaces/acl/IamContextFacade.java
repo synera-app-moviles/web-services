@@ -48,7 +48,6 @@ public class IamContextFacade {
             defaultName, 
             defaultLastname, 
             defaultEmail, 
-            null, // No department by default
             List.of(Role.getDefaultRole())
         );
         var result = userCommandService.handle(signUpCommand);
@@ -77,7 +76,6 @@ public class IamContextFacade {
             defaultName, 
             defaultLastname, 
             defaultEmail, 
-            null, // No department by default
             roles
         );
         var result = userCommandService.handle(signUpCommand);

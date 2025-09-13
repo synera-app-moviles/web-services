@@ -26,7 +26,6 @@ public class SignUpCommandFromResourceAssembler {
             resource.name(),
             resource.lastname(),
             resource.email(),
-            resource.departmentId(),
             roles
         );
     }

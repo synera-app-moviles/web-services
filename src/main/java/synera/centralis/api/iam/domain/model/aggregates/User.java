@@ -3,7 +3,6 @@ package synera.centralis.api.iam.domain.model.aggregates;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -54,9 +53,6 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     @Column(unique = true)
     private String email;
 
-    @Column(name = "department_id")
-    private UUID departmentId;
-
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(	name = "user_roles",
                 joinColumns = @JoinColumn(name = "user_id"),
@@ -73,18 +69,17 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.roles = new HashSet<>();
     }
 
-    public User(String username, String password, String name, String lastname, String email, UUID departmentId) {
+    public User(String username, String password, String name, String lastname, String email) {
         this.username = username;
         this.password = password;
         this.name = name;
         this.lastname = lastname;
         this.email = email;
-        this.departmentId = departmentId;
         this.roles = new HashSet<>();
     }
 
-    public User(String username, String password, String name, String lastname, String email, UUID departmentId, List<Role> roles) {
-        this(username, password, name, lastname, email, departmentId);
+    public User(String username, String password, String name, String lastname, String email, List<Role> roles) {
+        this(username, password, name, lastname, email);
         this.roles = new HashSet<>();
         addRoles(roles);
     }
@@ -107,16 +102,6 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     public User addRoles(List<Role> roles) {
         var validatedRoleSet = Role.validateRoleSet(roles);
         this.roles.addAll(validatedRoleSet);
-        return this;
-    }
-
-    /**
-     * Update user department
-     * @param departmentId the new department ID
-     * @return the user with updated department
-     */
-    public User updateDepartment(UUID departmentId) {
-        this.departmentId = departmentId;
         return this;
     }
 

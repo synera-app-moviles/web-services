@@ -9,8 +9,7 @@ public record UpdateUserCommand(
     UUID userId,
     String name,
     String lastname,
-    String email,
-    UUID departmentId
+    String email
 ) {
     public UpdateUserCommand {
         if (userId == null) {

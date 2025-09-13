@@ -1,6 +1,5 @@
 package synera.centralis.api.iam.infrastructure.persistence.jpa.repositories;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,13 +28,6 @@ public interface UserRepository extends JpaRepository<User, UUID>
      * @return True if the user exists, false otherwise.
      */
     boolean existsByUsername(String username);
-
-    /**
-     * This method is responsible for finding users by department id.
-     * @param departmentId The department id.
-     * @return The list of users.
-     */
-    List<User> findByDepartmentId(UUID departmentId);
 
     /**
      * This method is responsible for finding user by email.
