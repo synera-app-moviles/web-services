@@ -37,6 +37,4 @@ public interface UserCommandService {
      * @return an {@link Optional} of {@link User} entity
      */
     Optional<User> handle(UpdateUserCommand command);
-
-
 }

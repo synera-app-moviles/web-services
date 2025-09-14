@@ -6,24 +6,17 @@ import java.util.UUID;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * User resource
+ * User resource for IAM context
+ * Contains authentication and authorization data only
+ * Profile data is managed by Profile context
  */
-@Schema(description = "User information")
+@Schema(description = "User authentication information")
 public record UserResource(
     @Schema(description = "User ID", example = "123e4567-e89b-12d3-a456-426614174000")
     UUID id,
     
     @Schema(description = "Username", example = "john.doe")
     String username,
-    
-    @Schema(description = "First name", example = "John")
-    String name,
-    
-    @Schema(description = "Last name", example = "Doe")
-    String lastname,
-    
-    @Schema(description = "Email address", example = "john.doe@company.com")
-    String email,
     
     @Schema(description = "User roles")
     List<String> roles,

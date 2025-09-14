@@ -4,34 +4,24 @@ import java.util.UUID;
 
 /**
  * Update user command
+ * Command to update user password in IAM context
  */
 public record UpdateUserCommand(
     UUID userId,
-    String name,
-    String lastname,
-    String email
+    String newPassword
 ) {
     public UpdateUserCommand {
         if (userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Name cannot be null or empty");
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("New password cannot be null or empty");
         }
-        if (lastname == null || lastname.trim().isEmpty()) {
-            throw new IllegalArgumentException("Lastname cannot be null or empty");
+        if (newPassword.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters long");
         }
-        if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email cannot be null or empty");
-        }
-        if (name.length() > 100) {
-            throw new IllegalArgumentException("Name must not exceed 100 characters");
-        }
-        if (lastname.length() > 100) {
-            throw new IllegalArgumentException("Lastname must not exceed 100 characters");
-        }
-        if (email.length() > 150) {
-            throw new IllegalArgumentException("Email must not exceed 150 characters");
+        if (newPassword.length() > 120) {
+            throw new IllegalArgumentException("Password must not exceed 120 characters");
         }
     }
 }

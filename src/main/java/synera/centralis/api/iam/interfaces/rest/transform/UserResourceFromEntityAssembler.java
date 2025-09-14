@@ -6,6 +6,7 @@ import synera.centralis.api.iam.interfaces.rest.resources.UserResource;
 
 /**
  * Assembler to convert User entity to UserResource
+ * Handles IAM-specific data only (authentication and authorization)
  */
 public class UserResourceFromEntityAssembler {
     
@@ -19,10 +20,7 @@ public class UserResourceFromEntityAssembler {
         
         return new UserResource(
             user.getId(),
-            user.getUsername(),
-            user.getName(),
-            user.getLastname(),
-            user.getEmail(),
+            user.getUsername(), 
             roles,
             user.getCreatedAt() != null ? user.getCreatedAt().toString() : null,
             user.getUpdatedAt() != null ? user.getUpdatedAt().toString() : null

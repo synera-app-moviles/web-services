@@ -38,7 +38,7 @@ public record SignUpResource(
     @Size(max = 150, message = "Email must not exceed 150 characters")
     String email,
     
-    @Schema(description = "User roles", example = "[\"ROLE_EMPLOYEE\"]")
+    @Schema(description = "User roles", example = "[\"ROLE_USER\"]")
     List<String> roles
 ) {
 }

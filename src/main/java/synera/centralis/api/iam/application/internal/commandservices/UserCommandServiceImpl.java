@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import synera.centralis.api.iam.application.internal.outboundservices.hashing.HashingService;
 import synera.centralis.api.iam.application.internal.outboundservices.tokens.TokenService;
+import synera.centralis.api.iam.application.internal.outboundservices.acl.ExternalProfileService;
 import synera.centralis.api.iam.domain.model.aggregates.User;
 import synera.centralis.api.iam.domain.model.commands.SignInCommand;
 import synera.centralis.api.iam.domain.model.commands.SignUpCommand;
@@ -29,12 +30,14 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final HashingService hashingService;
     private final TokenService tokenService;
     private final RoleRepository roleRepository;
+    private final ExternalProfileService externalProfileService;
 
-    public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService, TokenService tokenService, RoleRepository roleRepository) {
+    public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService, TokenService tokenService, RoleRepository roleRepository, ExternalProfileService externalProfileService) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.roleRepository = roleRepository;
+        this.externalProfileService = externalProfileService;
     }
 
     /**
@@ -67,11 +70,9 @@ public class UserCommandServiceImpl implements UserCommandService {
      */
     @Override
     public Optional<User> handle(SignUpCommand command) {
-        // Validate username and email don't already exist
+        // Validate username doesn't already exist
         if (userRepository.existsByUsername(command.username()))
             throw new RuntimeException("Username already exists");
-        if (userRepository.existsByEmail(command.email()))
-            throw new RuntimeException("Email already exists");
         
         var roles = command.roles().stream()
             .map(role -> roleRepository.findByName(role.getName())
@@ -81,39 +82,52 @@ public class UserCommandServiceImpl implements UserCommandService {
         var user = new User(
             command.username(), 
             hashingService.encode(command.password()),
-            command.name(),
-            command.lastname(),
-            command.email(),
             roles
         );
         
-        userRepository.save(user);
+        var savedUser = userRepository.save(user);
+
+        // Create profile automatically using ACL
+        try {
+            var profileCreated = externalProfileService.createBasicProfile(
+                savedUser.getId().toString(), // Convert UUID to String
+                command.firstName(),
+                command.lastName(),
+                command.email()
+            );
+
+            if (profileCreated.isEmpty()) {
+                // Log warning but don't fail user creation
+                System.err.println("Warning: Failed to create profile for user " + savedUser.getId());
+            }
+        } catch (Exception e) {
+            // Log error but don't fail user creation
+            System.err.println("Error creating profile for user " + savedUser.getId() + ": " + e.getMessage());
+        }
+        
         return userRepository.findByUsername(command.username());
     }
 
     /**
-     * Handle update user command
-     * @param command the update user command containing the user data to update
+     * Handle the update user command
+     * <p>
+     *     This method handles the {@link UpdateUserCommand} command for password updates only.
+     *     Other user data is managed by the Profile context.
+     * </p>
+     * @param command the update user command containing the user ID and new password
      * @return the updated user
      */
     @Override
     public Optional<User> handle(UpdateUserCommand command) {
-        var userOptional = userRepository.findById(command.userId());
+        var user = userRepository.findById(command.userId());
+        if (user.isEmpty())
+            throw new RuntimeException("User not found");
         
-        if (userOptional.isEmpty()) {
-            throw new IllegalArgumentException("User with id " + command.userId() + " not found");
-        }
-
-        // Check if email is already taken by another user
-        var existingUserWithEmail = userRepository.findByEmail(command.email());
-        if (existingUserWithEmail.isPresent() && !existingUserWithEmail.get().getId().equals(command.userId())) {
-            throw new IllegalArgumentException("Email " + command.email() + " is already taken by another user");
-        }
-
-        var user = userOptional.get();
-        user.updateInformation(command.name(), command.lastname(), command.email());
+        var existingUser = user.get();
+        var hashedPassword = hashingService.encode(command.newPassword());
+        existingUser.setPassword(hashedPassword);
         
-        var savedUser = userRepository.save(user);
-        return Optional.of(savedUser);
+        var updatedUser = userRepository.save(existingUser);
+        return Optional.of(updatedUser);
     }
 }
