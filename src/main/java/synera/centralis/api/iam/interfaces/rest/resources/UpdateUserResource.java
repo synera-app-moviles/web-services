@@ -1,34 +1,18 @@
 package synera.centralis.api.iam.interfaces.rest.resources;
 
-import java.util.UUID;
-
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Update user resource
+ * Update user resource for IAM context
+ * Only handles password updates - profile data is managed by Profile context
  */
-@Schema(description = "Request to update user information")
+@Schema(description = "Request to update user password")
 public record UpdateUserResource(
-    @Schema(description = "First name", example = "John", required = true)
-    @NotBlank(message = "Name cannot be blank")
-    @Size(max = 100, message = "Name must not exceed 100 characters")
-    String name,
-    
-    @Schema(description = "Last name", example = "Doe", required = true)
-    @NotBlank(message = "Lastname cannot be blank")
-    @Size(max = 100, message = "Lastname must not exceed 100 characters")
-    String lastname,
-    
-    @Schema(description = "Email address", example = "john.doe@company.com", required = true)
-    @Email(message = "Email must be valid")
-    @NotBlank(message = "Email cannot be blank")
-    @Size(max = 150, message = "Email must not exceed 150 characters")
-    String email,
-    
-    @Schema(description = "Department ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    UUID departmentId
+    @Schema(description = "New password", example = "newSecurePassword123", required = true)
+    @NotBlank(message = "Password cannot be blank")
+    @Size(min = 6, max = 120, message = "Password must be between 6 and 120 characters")
+    String newPassword
 ) {
 }

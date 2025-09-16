@@ -48,7 +48,6 @@ public class IamContextFacade {
             defaultName, 
             defaultLastname, 
             defaultEmail, 
-            null, // No department by default
             List.of(Role.getDefaultRole())
         );
         var result = userCommandService.handle(signUpCommand);
@@ -64,21 +63,18 @@ public class IamContextFacade {
      * @return The id of the created user.
      */
     public UUID createUser(String username, String password, List<String> roleNames) {
-        var roles = roleNames != null ? roleNames.stream().map(Role::toRoleFromName).toList() : new ArrayList<Role>();
-        
-        // Generate default values for new required fields
-        var defaultName = username; // Use username as default name
-        var defaultLastname = "User"; // Default lastname
-        var defaultEmail = username + "@default.com"; // Generate default email
+        List<Role> roleList = new ArrayList<>();
+        if (roleNames != null) {
+            roleList = roleNames.stream().map(Role::toRoleFromName).toList();
+        }
         
         var signUpCommand = new SignUpCommand(
             username, 
             password, 
-            defaultName, 
-            defaultLastname, 
-            defaultEmail, 
-            null, // No department by default
-            roles
+            username, 
+            "User", 
+            username + "@default.com", 
+            roleList
         );
         var result = userCommandService.handle(signUpCommand);
         if (result.isEmpty()) return null;

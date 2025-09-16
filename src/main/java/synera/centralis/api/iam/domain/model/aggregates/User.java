@@ -3,7 +3,6 @@ package synera.centralis.api.iam.domain.model.aggregates;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,7 +11,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -40,23 +38,6 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     @Size(max = 120)
     private String password;
 
-    @NotBlank
-    @Size(max = 100)
-    private String name;
-
-    @NotBlank
-    @Size(max = 100)
-    private String lastname;
-
-    @Email
-    @NotBlank
-    @Size(max = 150)
-    @Column(unique = true)
-    private String email;
-
-    @Column(name = "department_id")
-    private UUID departmentId;
-
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(	name = "user_roles",
                 joinColumns = @JoinColumn(name = "user_id"),
@@ -73,20 +54,14 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.roles = new HashSet<>();
     }
 
-    public User(String username, String password, String name, String lastname, String email, UUID departmentId) {
-        this.username = username;
-        this.password = password;
-        this.name = name;
-        this.lastname = lastname;
-        this.email = email;
-        this.departmentId = departmentId;
+    public User(String username, String password, List<Role> roles) {
+        this(username, password);
         this.roles = new HashSet<>();
-    }
-
-    public User(String username, String password, String name, String lastname, String email, UUID departmentId, List<Role> roles) {
-        this(username, password, name, lastname, email, departmentId);
-        this.roles = new HashSet<>();
-        addRoles(roles);
+        if (roles != null && !roles.isEmpty()) {
+            this.roles.addAll(roles);
+        } else {
+            this.roles.add(new Role(synera.centralis.api.iam.domain.model.valueobjects.Roles.ROLE_USER));
+        }
     }
 
     /**
@@ -107,30 +82,6 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     public User addRoles(List<Role> roles) {
         var validatedRoleSet = Role.validateRoleSet(roles);
         this.roles.addAll(validatedRoleSet);
-        return this;
-    }
-
-    /**
-     * Update user department
-     * @param departmentId the new department ID
-     * @return the user with updated department
-     */
-    public User updateDepartment(UUID departmentId) {
-        this.departmentId = departmentId;
-        return this;
-    }
-
-    /**
-     * Update user information
-     * @param name the new name
-     * @param lastname the new lastname
-     * @param email the new email
-     * @return the user with updated information
-     */
-    public User updateInformation(String name, String lastname, String email) {
-        this.name = name;
-        this.lastname = lastname;
-        this.email = email;
         return this;
     }
 

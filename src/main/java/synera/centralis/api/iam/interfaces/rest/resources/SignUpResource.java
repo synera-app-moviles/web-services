@@ -1,7 +1,6 @@
 package synera.centralis.api.iam.interfaces.rest.resources;
 
 import java.util.List;
-import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -39,10 +38,7 @@ public record SignUpResource(
     @Size(max = 150, message = "Email must not exceed 150 characters")
     String email,
     
-    @Schema(description = "Department ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    UUID departmentId,
-    
-    @Schema(description = "User roles", example = "[\"ROLE_EMPLOYEE\"]")
+    @Schema(description = "User roles", example = "[\"ROLE_USER\"]")
     List<String> roles
 ) {
 }
