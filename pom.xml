@@ -120,6 +120,14 @@
             <artifactId>firebase-admin</artifactId>
             <version>9.4.1</version>
         </dependency>
+
+        <!--Cloudinary for image uploads-->
+        <!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http44 -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.34.0</version>
+        </dependency>
 	</dependencies>
 
 	<build>
