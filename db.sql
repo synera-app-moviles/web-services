@@ -121,13 +121,13 @@ CREATE TABLE group_members (
 -- Table structure for table `messages`
 --
 CREATE TABLE messages (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    content TEXT NOT NULL,
-    message_type VARCHAR(20) NOT NULL DEFAULT 'TEXT',
+    message_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    body VARCHAR(1000) NOT NULL,
+    edited_at TIMESTAMP(6),
     group_id UUID NOT NULL,
     sender_id UUID NOT NULL,
+    sent_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) NOT NULL DEFAULT 'SENT' CHECK (status IN ('DELETED', 'EDITED', 'SENT')),
     FOREIGN KEY (group_id) REFERENCES chat_groups(id) ON DELETE CASCADE
 );
 
@@ -185,7 +185,8 @@ CREATE INDEX idx_comments_user_id ON comments(user_id);
 CREATE INDEX idx_chat_groups_created_by ON chat_groups(created_by);
 CREATE INDEX idx_messages_group_id ON messages(group_id);
 CREATE INDEX idx_messages_sender_id ON messages(sender_id);
-CREATE INDEX idx_messages_created_at ON messages(created_at);
+CREATE INDEX idx_messages_sent_at ON messages(sent_at);
+CREATE INDEX idx_messages_status ON messages(status);
 CREATE INDEX idx_notifications_status ON notifications(status);
 CREATE INDEX idx_notifications_priority ON notifications(priority);
 CREATE INDEX idx_user_fcm_tokens_user_id ON user_fcm_tokens(user_id);

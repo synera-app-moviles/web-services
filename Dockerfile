@@ -1,5 +1,5 @@
-# Usar OpenJDK 21 como imagen base (compatible con tu proyecto)
-FROM openjdk:21-jdk-slim
+# Usar Eclipse Temurin Java 24 como imagen base
+FROM eclipse-temurin:24-jdk
 
 # Información del mantenedor
 LABEL maintainer="synera-centralis"
