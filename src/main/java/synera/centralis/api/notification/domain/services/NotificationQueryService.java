@@ -1,6 +1,7 @@
 package synera.centralis.api.notification.domain.services;
 
 import synera.centralis.api.notification.domain.model.aggregates.Notification;
+import synera.centralis.api.notification.domain.model.queries.GetNotificationByIdQuery;
 import synera.centralis.api.notification.domain.model.queries.GetNotificationsByUserIdQuery;
 import synera.centralis.api.notification.domain.model.queries.GetNotificationStatusQuery;
 
@@ -22,4 +23,11 @@ public interface NotificationQueryService {
      * @return The notification if found
      */
     Optional<Notification> handle(GetNotificationStatusQuery query);
+    
+    /**
+     * Handle retrieving a specific notification by ID
+     * @param query The query containing notification ID
+     * @return The notification if found
+     */
+    Optional<Notification> handle(GetNotificationByIdQuery query);
 }
