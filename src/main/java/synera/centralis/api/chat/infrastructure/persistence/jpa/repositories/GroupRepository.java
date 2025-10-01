@@ -49,6 +49,15 @@ public interface GroupRepository extends JpaRepository<Group, UUID> {
     List<Group> findByVisibility(@Param("visibility") String visibility);
 
     /**
+     * Find a group by ID with members eagerly loaded.
+     * Used for notification processing to avoid LazyInitializationException.
+     * @param groupId the group ID
+     * @return the group with members loaded, or null if not found
+     */
+    @Query("SELECT g FROM Group g LEFT JOIN FETCH g.members WHERE g.id = :groupId")
+    Group findByIdWithMembers(@Param("groupId") UUID groupId);
+
+    /**
      * Count the number of members in a group.
      * @param groupId the group ID
      * @return the number of members in the group

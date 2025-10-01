@@ -11,7 +11,7 @@ public record NotificationResource(
         UUID id,
         String title,
         String message,
-        List<String> recipients, // User UUIDs as strings
+        List<String> recipientIds, // User IDs as strings
         NotificationPriority priority,
         NotificationStatus status,
         LocalDateTime createdAt,

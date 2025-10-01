@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import synera.centralis.api.notification.domain.model.commands.CreateNotificationCommand;
 import synera.centralis.api.notification.domain.model.commands.UpdateNotificationStatusCommand;
+import synera.centralis.api.notification.domain.model.queries.GetNotificationByIdQuery;
 import synera.centralis.api.notification.domain.model.queries.GetNotificationsByUserIdQuery;
 import synera.centralis.api.notification.domain.model.queries.GetNotificationStatusQuery;
 import synera.centralis.api.notification.domain.services.NotificationCommandService;
@@ -95,6 +96,38 @@ public class NotificationController {
         return ResponseEntity.ok(resource);
     }
     
+    @GetMapping("/notification/{id}")
+    @Operation(summary = "Get notification by ID", description = "Retrieve a specific notification with all details including recipients")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved notification"),
+            @ApiResponse(responseCode = "404", description = "Notification not found")
+    })
+    public ResponseEntity<NotificationResource> getNotificationById(
+            @Parameter(description = "Notification ID", required = true)
+            @PathVariable UUID id) {
+        
+        var query = new GetNotificationByIdQuery(id);
+        var notificationOpt = notificationQueryService.handle(query);
+        
+        if (notificationOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        var notification = notificationOpt.get();
+        var resource = new NotificationResource(
+                notification.getId(),
+                notification.getTitle(),
+                notification.getMessage(),
+                notification.getRecipients(), // This will show the list of recipient IDs
+                notification.getPriority(),
+                notification.getStatus(),
+                LocalDateTime.ofInstant(notification.getCreatedAt().toInstant(), ZoneId.systemDefault()),
+                LocalDateTime.ofInstant(notification.getUpdatedAt().toInstant(), ZoneId.systemDefault())
+        );
+        
+        return ResponseEntity.ok(resource);
+    }
+    
     @PutMapping("/{id}/status")
     @Operation(summary = "Update notification status", description = "Update the status of a specific notification")
     @ApiResponses(value = {
@@ -137,7 +170,7 @@ public class NotificationController {
         var command = new CreateNotificationCommand(
                 resource.title(),
                 resource.message(),
-                resource.recipients(),
+                resource.recipientIds(),
                 resource.priority()
         );
         var notificationOpt = notificationCommandService.handle(command);

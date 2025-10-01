@@ -1,16 +1,24 @@
 package synera.centralis.api.chat.application.internal.commandservices;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 import synera.centralis.api.chat.domain.model.aggregates.Group;
-import synera.centralis.api.chat.domain.model.commands.*;
+import synera.centralis.api.chat.domain.model.commands.AddMemberToGroupCommand;
+import synera.centralis.api.chat.domain.model.commands.CreateGroupCommand;
+import synera.centralis.api.chat.domain.model.commands.DeleteGroupCommand;
+import synera.centralis.api.chat.domain.model.commands.RemoveMemberFromGroupCommand;
+import synera.centralis.api.chat.domain.model.commands.UpdateGroupCommand;
+import synera.centralis.api.chat.domain.model.commands.UpdateGroupVisibilityCommand;
 import synera.centralis.api.chat.domain.services.GroupCommandService;
 import synera.centralis.api.chat.infrastructure.persistence.jpa.repositories.GroupRepository;
 import synera.centralis.api.chat.infrastructure.persistence.jpa.repositories.MessageRepository;
-
-import java.util.Optional;
-import java.util.UUID;
+import synera.centralis.api.shared.domain.events.GroupCreatedEvent;
 
 /**
  * Implementation of GroupCommandService.
@@ -22,10 +30,14 @@ public class GroupCommandServiceImpl implements GroupCommandService {
 
     private final GroupRepository groupRepository;
     private final MessageRepository messageRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public GroupCommandServiceImpl(GroupRepository groupRepository, MessageRepository messageRepository) {
+    public GroupCommandServiceImpl(GroupRepository groupRepository, 
+                                 MessageRepository messageRepository,
+                                 ApplicationEventPublisher eventPublisher) {
         this.groupRepository = groupRepository;
         this.messageRepository = messageRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -44,6 +56,34 @@ public class GroupCommandServiceImpl implements GroupCommandService {
             );
 
             var savedGroup = groupRepository.save(group);
+            
+            log.info("=== GROUP CREATED ===");
+            log.info("Group Name: {}", savedGroup.getName());
+            log.info("Group ID: {}", savedGroup.getId());
+            log.info("Created By: {}", savedGroup.getCreatedBy().userId());
+            log.info("Members count: {}", savedGroup.getMembers().size());
+            
+            // Publish group created event for notifications
+            log.info("🚀 PUBLISHING GROUP CREATED EVENT for group: {}", savedGroup.getId());
+            
+            // Extract member IDs from the group
+            var memberIds = savedGroup.getMembers().stream()
+                    .map(member -> member.userId())
+                    .collect(java.util.stream.Collectors.toSet());
+            
+            log.info("👥 Member IDs: {}", memberIds);
+            
+            var event = GroupCreatedEvent.create(
+                savedGroup.getId(),
+                savedGroup.getName(),
+                savedGroup.getCreatedBy().userId(),
+                memberIds
+            );
+            
+            log.info("📋 Event created: {}", event.toString());
+            eventPublisher.publishEvent(event);
+            log.info("✅ Group creation event published successfully");
+            
             log.info("Successfully created group with ID: {}", savedGroup.getId());
             
             return Optional.of(savedGroup);

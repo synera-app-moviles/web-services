@@ -15,7 +15,7 @@ public record CreateNotificationResource(
         String message,
         
         @NotEmpty(message = "Recipients list cannot be empty")
-        List<String> recipients, // User UUIDs as strings
+        List<String> recipientIds, // User IDs as strings
         
         @NotNull(message = "Priority cannot be null")
         NotificationPriority priority

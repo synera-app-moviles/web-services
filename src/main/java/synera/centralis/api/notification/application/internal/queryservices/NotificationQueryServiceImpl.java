@@ -3,6 +3,7 @@ package synera.centralis.api.notification.application.internal.queryservices;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import synera.centralis.api.notification.domain.model.aggregates.Notification;
+import synera.centralis.api.notification.domain.model.queries.GetNotificationByIdQuery;
 import synera.centralis.api.notification.domain.model.queries.GetNotificationsByUserIdQuery;
 import synera.centralis.api.notification.domain.model.queries.GetNotificationStatusQuery;
 import synera.centralis.api.notification.domain.services.NotificationQueryService;
@@ -29,6 +30,12 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Notification> handle(GetNotificationStatusQuery query) {
+        return notificationRepository.findById(query.notificationId());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Notification> handle(GetNotificationByIdQuery query) {
         return notificationRepository.findById(query.notificationId());
     }
 }

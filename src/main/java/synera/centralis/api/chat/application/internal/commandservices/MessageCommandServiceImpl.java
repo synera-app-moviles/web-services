@@ -1,14 +1,17 @@
 package synera.centralis.api.chat.application.internal.commandservices;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import synera.centralis.api.chat.domain.model.aggregates.Group;
 import synera.centralis.api.chat.domain.model.commands.*;
 import synera.centralis.api.chat.domain.model.entities.Message;
 import synera.centralis.api.chat.domain.model.valueobjects.MessageStatus;
 import synera.centralis.api.chat.domain.services.MessageCommandService;
 import synera.centralis.api.chat.infrastructure.persistence.jpa.repositories.GroupRepository;
 import synera.centralis.api.chat.infrastructure.persistence.jpa.repositories.MessageRepository;
+import synera.centralis.api.shared.domain.events.MessageSentInGroupEvent;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -23,10 +26,14 @@ public class MessageCommandServiceImpl implements MessageCommandService {
 
     private final MessageRepository messageRepository;
     private final GroupRepository groupRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public MessageCommandServiceImpl(MessageRepository messageRepository, GroupRepository groupRepository) {
+    public MessageCommandServiceImpl(MessageRepository messageRepository, 
+                                   GroupRepository groupRepository,
+                                   ApplicationEventPublisher eventPublisher) {
         this.messageRepository = messageRepository;
         this.groupRepository = groupRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -53,6 +60,22 @@ public class MessageCommandServiceImpl implements MessageCommandService {
 
             var message = new Message(command.groupId(), command.senderId(), command.body());
             var savedMessage = messageRepository.save(message);
+            
+            // Publish message sent event for notifications
+            log.info("Publishing message sent event for group: {}", command.groupId());
+            
+            // Get group name for the event
+            String groupName = groupOptional.map(Group::getName).orElse("Unknown Group");
+            
+            var event = MessageSentInGroupEvent.create(
+                savedMessage.getMessageId(),
+                savedMessage.getGroupId(),
+                groupName,
+                savedMessage.getSenderId().userId(),
+                savedMessage.getBody()
+            );
+            
+            eventPublisher.publishEvent(event);
             
             log.info("Successfully created message with ID: {}", savedMessage.getMessageId());
             return Optional.of(savedMessage);

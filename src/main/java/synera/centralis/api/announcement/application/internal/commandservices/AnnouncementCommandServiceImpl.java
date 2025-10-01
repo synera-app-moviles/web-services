@@ -1,6 +1,7 @@
 package synera.centralis.api.announcement.application.internal.commandservices;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import synera.centralis.api.announcement.domain.model.aggregates.Announcement;
@@ -10,9 +11,11 @@ import synera.centralis.api.announcement.domain.model.commands.UpdateAnnouncemen
 import synera.centralis.api.announcement.domain.services.AnnouncementCommandService;
 import synera.centralis.api.announcement.infrastructure.persistence.jpa.repositories.AnnouncementRepository;
 import synera.centralis.api.announcement.infrastructure.persistence.jpa.repositories.CommentRepository;
+import synera.centralis.api.shared.domain.events.UrgentAnnouncementCreatedEvent;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * Announcement Command Service Implementation
@@ -21,14 +24,19 @@ import java.util.UUID;
 @Service
 public class AnnouncementCommandServiceImpl implements AnnouncementCommandService {
 
+    private static final Logger logger = Logger.getLogger(AnnouncementCommandServiceImpl.class.getName());
+    
     private final AnnouncementRepository announcementRepository;
     private final CommentRepository commentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public AnnouncementCommandServiceImpl(AnnouncementRepository announcementRepository,
-                                        CommentRepository commentRepository) {
+                                        CommentRepository commentRepository,
+                                        ApplicationEventPublisher eventPublisher) {
         this.announcementRepository = announcementRepository;
         this.commentRepository = commentRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -44,8 +52,33 @@ public class AnnouncementCommandServiceImpl implements AnnouncementCommandServic
             );
 
             var savedAnnouncement = announcementRepository.save(announcement);
+            
+            logger.info("=== ANNOUNCEMENT CREATED ===");
+            logger.info("Title: " + savedAnnouncement.getTitle());
+            logger.info("Priority: " + savedAnnouncement.getPriority().level());
+            logger.info("Is Urgent: " + savedAnnouncement.getPriority().isUrgent());
+            
+            // Publish event if announcement is urgent
+            if (savedAnnouncement.getPriority().isUrgent()) {
+                logger.info("🚨 PUBLISHING URGENT ANNOUNCEMENT EVENT for: " + savedAnnouncement.getTitle());
+                
+                var event = UrgentAnnouncementCreatedEvent.create(
+                    savedAnnouncement.getId(),
+                    savedAnnouncement.getTitle(),
+                    savedAnnouncement.getDescription(),
+                    savedAnnouncement.getCreatedBy()
+                );
+                
+                logger.info("🚀 Event created: " + event.toString());
+                eventPublisher.publishEvent(event);
+                logger.info("✅ Event published successfully");
+            } else {
+                logger.info("ℹ️ Announcement is not urgent, no event will be published");
+            }
+            
             return Optional.of(savedAnnouncement);
         } catch (Exception e) {
+            logger.severe("Error creating announcement: " + e.getMessage());
             throw new RuntimeException("Error creating announcement: " + e.getMessage(), e);
         }
     }
