@@ -1,0 +1,40 @@
+# Docker Compose para desarrollo local
+version: '3.8'
+
+services:
+  # Aplicación Spring Boot
+  centralis-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: centralis-web-services
+    ports:
+      - "8080:8080"
+    environment:
+      # Variables de entorno para la aplicación
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require
+      - SPRING_DATASOURCE_USERNAME=postgres.qelofvejjwmgmijkmfyd
+      - SPRING_DATASOURCE_PASSWORD=Uzb2IfIYqfnRKVnz
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+    volumes:
+      # Montar logs si necesitas depuración
+      - ./logs:/app/logs
+    networks:
+      - centralis-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  centralis-network:
+    driver: bridge
+
+# Volúmenes para persistencia de logs
+volumes:
+  centralis-logs:
