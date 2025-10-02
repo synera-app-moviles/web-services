@@ -10,8 +10,6 @@ services:
     container_name: centralis-web-services
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     environment:
       # Variables de entorno para la aplicación
       - SPRING_PROFILES_ACTIVE=docker
