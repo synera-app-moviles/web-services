@@ -1,5 +1,6 @@
 package synera.centralis.api.notification.application.internal.commandservices;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +24,11 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
     
     private static final Logger logger = Logger.getLogger(NotificationCommandServiceImpl.class.getName());
     private final NotificationRepository notificationRepository;
+    private final ApplicationEventPublisher eventPublisher;
     
-    public NotificationCommandServiceImpl(NotificationRepository notificationRepository) {
+    public NotificationCommandServiceImpl(NotificationRepository notificationRepository, ApplicationEventPublisher eventPublisher) {
         this.notificationRepository = notificationRepository;
+        this.eventPublisher = eventPublisher;
     }
     
     @Override
@@ -50,6 +53,14 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
             
             // Register domain event
             savedNotification.addDomainEvent(new NotificationCreatedEvent(
+                    savedNotification.getId(),
+                    savedNotification.getTitle(),
+                    savedNotification.getMessage(),
+                    savedNotification.getRecipients()
+            ));
+            
+            // Publish Spring event for FCM processing
+            eventPublisher.publishEvent(new NotificationCreatedEvent(
                     savedNotification.getId(),
                     savedNotification.getTitle(),
                     savedNotification.getMessage(),
