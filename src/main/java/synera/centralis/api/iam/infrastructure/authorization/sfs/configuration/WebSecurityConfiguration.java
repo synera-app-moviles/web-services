@@ -95,9 +95,13 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("*"));
+            
+            // Para endpoints SSE: sin credentials, wildcard permitido
+            cors.setAllowedOriginPatterns(List.of("*"));
             cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
             cors.setAllowedHeaders(List.of("*"));
+            cors.setAllowCredentials(true); // Necesario para endpoints autenticados
+            
             return cors;
         }));
         http.csrf(csrfConfigurer -> csrfConfigurer.disable())
@@ -113,6 +117,7 @@ public class WebSecurityConfiguration {
                                 "/api/v1/manufacturers",
                                 "/api/v1/announcements/**",
                                 "/api/v1/comments/**",
+                                "/api/v1/sse/**", // ← AGREGADO: Permitir endpoints SSE sin autenticación
                                 "/webjars/**").permitAll()
                         .anyRequest().authenticated());
         http.authenticationProvider(authenticationProvider());
