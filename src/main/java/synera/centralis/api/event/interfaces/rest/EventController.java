@@ -8,15 +8,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import synera.centralis.api.event.domain.model.agreggates.Event;
 import synera.centralis.api.event.domain.model.commands.DeleteEventCommand;
+import synera.centralis.api.event.domain.model.commands.CreateEventCommand;
+import synera.centralis.api.event.domain.model.commands.UpdateEventCommand;
 import synera.centralis.api.event.domain.model.queries.*;
 import synera.centralis.api.event.domain.model.valueobjects.UserId;
 import synera.centralis.api.event.domain.services.EventCommandService;
 import synera.centralis.api.event.domain.services.EventQueryService;
 import synera.centralis.api.event.interfaces.rest.resources.*;
-import synera.centralis.api.event.interfaces.rest.transform.*;
+import synera.centralis.api.event.interfaces.rest.transform.EventResourceFromEntityAssembler;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -44,16 +48,40 @@ public class EventController {
     /**
      * Creates a new event.
      */
+
     @PostMapping
+    @PreAuthorize("hasRole('MANAGER')")
     @Operation(summary = "Create a new event", description = "Creates a new business event with the provided information")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Event created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<EventResource> createEvent(@Valid @RequestBody CreateEventResource resource) {
+    public ResponseEntity<EventResource> createEvent(Authentication authentication, @Valid @RequestBody CreateEventResource resource) {
         try {
-            var createEventCommand = CreateEventCommandFromResourceAssembler.toCommandFromResource(resource);
+            // Preferir el userId del Authentication si está disponible y es un UUID.
+            UUID createdByUuid = null;
+            if (authentication != null && authentication.getName() != null) {
+                try {
+                    createdByUuid = UUID.fromString(authentication.getName());
+                } catch (IllegalArgumentException ignored) {
+                    // Si el nombre del principal no es UUID, caeremos al valor enviado en el body.
+                }
+            }
+
+            if (createdByUuid == null) {
+                createdByUuid = resource.createdBy();
+            }
+
+            var createEventCommand = new CreateEventCommand(
+                    resource.title(),
+                    resource.description(),
+                    resource.date(),
+                    resource.location(),
+                    resource.recipientIds(),
+                    new UserId(createdByUuid)
+            );
+
             Optional<Event> event = eventCommandService.handle(createEventCommand);
 
             if (event.isPresent()) {
@@ -177,6 +205,7 @@ public class EventController {
      * Updates an event's information.
      */
     @PutMapping("/{eventId}")
+    @PreAuthorize("hasRole('MANAGER')")
     @Operation(summary = "Update event", description = "Updates event information including title, description, date, location, and recipients")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Event updated successfully"),
@@ -188,7 +217,14 @@ public class EventController {
             @Parameter(description = "Event ID", required = true) @PathVariable UUID eventId,
             @Valid @RequestBody UpdateEventResource resource) {
         try {
-            var updateEventCommand = UpdateEventCommandFromResourceAssembler.toCommandFromResource(eventId, resource);
+            var updateEventCommand = new UpdateEventCommand(
+                    eventId,
+                    resource.title(),
+                    resource.description(),
+                    resource.date(),
+                    resource.location(),
+                    resource.recipientIds()
+            );
             Optional<Event> updatedEvent = eventCommandService.handle(updateEventCommand);
 
             if (updatedEvent.isPresent()) {
@@ -206,6 +242,7 @@ public class EventController {
      * Deletes an event.
      */
     @DeleteMapping("/{eventId}")
+    @PreAuthorize("hasRole('MANAGER')")
     @Operation(summary = "Delete event", description = "Permanently deletes an event")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Event deleted successfully"),
@@ -228,4 +265,3 @@ public class EventController {
         }
     }
 }
-
