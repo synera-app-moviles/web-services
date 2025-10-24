@@ -7,6 +7,7 @@ import synera.centralis.api.iam.domain.model.queries.GetUserByUsernameQuery;
 import synera.centralis.api.iam.domain.services.UserCommandService;
 import synera.centralis.api.iam.domain.services.UserQueryService;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.UUID;
  * </p>
  *
  */
+@Service
 public class IamContextFacade {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;

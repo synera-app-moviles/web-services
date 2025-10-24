@@ -59,7 +59,8 @@ public class FCMNotificationHandler {
     public void handle(NotificationCreatedEvent event) {
         logger.info("🔔 FCM HANDLER TRIGGERED: Processing notification ID: " + event.getNotificationId());
         logger.info("📱 Recipients: " + event.getRecipients().size() + " users");
-        logger.info("📝 Title: " + event.getTitle());
+        logger.info("� Recipients list: " + event.getRecipients());
+        logger.info("�📝 Title: " + event.getTitle());
         
         try {
             // 1. Get FCM tokens for the recipients
