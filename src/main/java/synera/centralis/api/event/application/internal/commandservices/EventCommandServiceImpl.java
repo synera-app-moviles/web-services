@@ -1,7 +1,11 @@
+
 package synera.centralis.api.event.application.internal.commandservices;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -55,17 +59,19 @@ public class EventCommandServiceImpl implements EventCommandService {
             log.info("Event ID: {}", savedEvent.getId());
             log.info("Event Date: {}", savedEvent.getDate());
             log.info("Created By: {}", savedEvent.getCreatedBy().userId());
-            log.info("Recipients count: {}", savedEvent.getRecipients().size());
+
+            // Safely extract recipient IDs (evita NPE si recipients es null)
+            Set<UUID> recipientIds = savedEvent.getRecipients() == null
+                    ? Collections.emptySet()
+                    : savedEvent.getRecipients().stream()
+                            .map(recipient -> recipient.userId())
+                            .collect(Collectors.toSet());
+
+            log.info("Recipients count: {}", recipientIds.size());
+            log.info("👥 Recipient IDs: {}", recipientIds);
 
             // Publish event created domain event for notifications
             log.info("🚀 PUBLISHING EVENT CREATED EVENT for event: {}", savedEvent.getId());
-
-            // Extract recipient IDs from the event
-            var recipientIds = savedEvent.getRecipients().stream()
-                    .map(recipient -> recipient.userId())
-                    .collect(java.util.stream.Collectors.toSet());
-
-            log.info("👥 Recipient IDs: {}", recipientIds);
 
             var domainEvent = EventCreatedEvent.create(
                 savedEvent.getId(),
@@ -149,4 +155,3 @@ public class EventCommandServiceImpl implements EventCommandService {
         }
     }
 }
-
