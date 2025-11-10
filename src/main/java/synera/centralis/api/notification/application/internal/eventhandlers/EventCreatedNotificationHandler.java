@@ -35,9 +35,7 @@ package synera.centralis.api.notification.application.internal.eventhandlers;
          logger.info("📅 Processing event creation notification for: " + event.title());
 
          try {
-             // Ya no enviamos notificación al creador — solo a los asistentes
 
-             // Loguear recipients recibidos
              Set<UUID> recipients = event.recipientIds();
              logger.info("📥 Recipients raw from event: " + (recipients == null ? "null" : recipients.toString()));
 
