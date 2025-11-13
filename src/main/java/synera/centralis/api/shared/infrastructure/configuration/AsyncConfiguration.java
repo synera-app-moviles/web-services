@@ -46,4 +46,20 @@ public class AsyncConfiguration {
         executor.initialize();
         return executor;
     }
+    
+    /**
+     * Creates a thread pool executor for FCM notification processing
+     * @return Configured thread pool executor for FCM notifications
+     */
+    @Bean(name = "fcmTaskExecutor")
+    public Executor fcmTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("FCM-");
+        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
 }
