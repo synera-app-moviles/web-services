@@ -61,4 +61,13 @@ public class UserQueryServiceImpl implements UserQueryService {
     public Optional<User> handle(GetUserByUsernameQuery query) {
         return userRepository.findByUsername(query.username());
     }
+
+    /**
+     * Get total count of users in the system
+     * @return Total user count
+     */
+    @Override
+    public long getTotalUserCount() {
+        return userRepository.count();
+    }
 }

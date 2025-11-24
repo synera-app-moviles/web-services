@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -39,17 +40,12 @@ public class IamContextFacade {
      * @return The id of the created user.
      */
     public UUID createUser(String username, String password) {
-        // Generate default values for new required fields
-        var defaultName = username; // Use username as default name
-        var defaultLastname = "User"; // Default lastname
-        var defaultEmail = username + "@default.com"; // Generate default email
-        
         var signUpCommand = new SignUpCommand(
             username, 
             password, 
-            defaultName, 
-            defaultLastname, 
-            defaultEmail, 
+            username, // Use username as firstName
+            "Usuario", // Default lastName
+            username + "@empresa.com", // Generate default email
             List.of(Role.getDefaultRole())
         );
         var result = userCommandService.handle(signUpCommand);
@@ -73,9 +69,9 @@ public class IamContextFacade {
         var signUpCommand = new SignUpCommand(
             username, 
             password, 
-            username, 
-            "User", 
-            username + "@default.com", 
+            username, // Use username as firstName
+            "Usuario", // Default lastName  
+            username + "@empresa.com", // Generate default email
             roleList
         );
         var result = userCommandService.handle(signUpCommand);
@@ -107,4 +103,42 @@ public class IamContextFacade {
         return result.get().getUsername();
     }
 
+    // === DASHBOARD ACL METHODS ===
+
+    /**
+     * Check if user exists in the system (authentication level only)
+     * @param userId The user ID
+     * @return true if user exists, false otherwise
+     */
+    public boolean userExists(UUID userId) {
+        var getUserByIdQuery = new GetUserByIdQuery(userId);
+        var result = userQueryService.handle(getUserByIdQuery);
+        return result.isPresent();
+    }
+
+    /**
+     * Get username by user ID (for basic identification)
+     * @param userId The user ID
+     * @return username or empty string if not found
+     */
+    public String getUsernameById(UUID userId) {
+        var getUserByIdQuery = new GetUserByIdQuery(userId);
+        var result = userQueryService.handle(getUserByIdQuery);
+        if (result.isEmpty()) return "";
+        return result.get().getUsername();
+    }
+
+    /**
+     * Get total count of users in the system
+     * @return Total user count
+     */
+    public long getTotalUserCount() {
+        try {
+            return userQueryService.getTotalUserCount();
+        } catch (Exception e) {
+            System.err.println("Error getting user count: " + e.getMessage());
+            return 0L; // Return 0 on error instead of mock data
+        }
+    }
 }
+
