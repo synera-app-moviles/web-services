@@ -199,7 +199,10 @@ public class ContentViewQueryServiceImpl implements ContentViewQueryService {
         
         // Get basic stats
         long totalViews = views.size();
-        long totalUsers = externalUserService.getTotalUserCount();
+        
+        // Get event participation stats to get only users registered for this specific event
+        var participationStats = externalContentService.fetchEventParticipationStats(query.eventId());
+        long totalUsers = participationStats.getOrDefault("registered", 0L);
         
         // Get event info
         var eventInfo = externalContentService.fetchEventInfo(query.eventId())
@@ -212,6 +215,9 @@ public class ContentViewQueryServiceImpl implements ContentViewQueryService {
             ));
 
         // Get department breakdown
+        // Note: Currently using all departments in the system, but ideally should use only departments
+        // of users registered for this specific event. This requires getting the full list of registered users
+        // from the Event context, which would be a future enhancement.
         var departmentStats = externalUserService.getDepartmentStatistics();
         var departmentBreakdown = departmentStats.entrySet().stream()
             .map(entry -> {
@@ -223,18 +229,22 @@ public class ContentViewQueryServiceImpl implements ContentViewQueryService {
                     .filter(user -> entry.getKey().equals(user.department()))
                     .count();
                 
+                // TODO: Use actual registered users count per department for this event instead of total department size
+                long departmentTotal = entry.getValue();
+                double percentage = departmentTotal > 0 ? (departmentViews * 100.0) / departmentTotal : 0.0;
+                
                 return new EventStatsResource.DepartmentBreakdownData(
                     entry.getKey(),
-                    entry.getValue(),
+                    departmentTotal,
                     departmentViews,
-                    (departmentViews * 100.0) / entry.getValue()
+                    percentage
                 );
             })
             .toList();
 
-        // Calculate percentages
-        double viewPercentage = (totalViews * 100.0) / totalUsers;
-        double notViewedPercentage = ((totalUsers - totalViews) * 100.0) / totalUsers;
+        // Calculate percentages (avoid division by zero)
+        double viewPercentage = totalUsers > 0 ? (totalViews * 100.0) / totalUsers : 0.0;
+        double notViewedPercentage = totalUsers > 0 ? ((totalUsers - totalViews) * 100.0) / totalUsers : 0.0;
 
         // Create view stats
         var viewStats = new EventStatsResource.ViewStatsData(

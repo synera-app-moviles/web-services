@@ -211,18 +211,35 @@ public class EventContextFacade {
      */
     public Map<String, Long> getEventParticipationStats(UUID eventId) {
         try {
-            // TODO: Implement actual participation stats query
-            // var query = new GetEventParticipationStatsQuery(eventId);
-            // var result = eventQueryService.handle(query);
+            // Get the actual event to retrieve real recipient data
+            var query = new GetEventByIdQuery(eventId);
+            var eventOptional = eventQueryService.handle(query);
             
-            // For now, return mock stats
-            return Map.of(
-                "registered", 50L,
-                "attended", 35L,
-                "no_show", 15L
-            );
+            if (eventOptional.isPresent()) {
+                var event = eventOptional.get();
+                long registeredCount = event.getRecipientCount(); // Real number of recipients for this event
+                
+                return Map.of(
+                    "registered", registeredCount,
+                    "attended", 0L,  // TODO: Implement actual attendance tracking
+                    "no_show", 0L    // TODO: Implement actual no-show tracking
+                );
+            } else {
+                // Event not found, return empty stats
+                return Map.of(
+                    "registered", 0L,
+                    "attended", 0L,
+                    "no_show", 0L
+                );
+            }
         } catch (Exception e) {
-            return Map.of();
+            System.err.println("Error getting event participation stats for " + eventId + ": " + e.getMessage());
+            // Fallback to minimal stats if there's an error
+            return Map.of(
+                "registered", 0L,
+                "attended", 0L,
+                "no_show", 0L
+            );
         }
     }
 }

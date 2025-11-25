@@ -169,6 +169,24 @@ public class ExternalContentService {
         }
     }
 
+    /**
+     * Get event participation statistics for dashboard analytics
+     * @param eventId The event ID
+     * @return Map with participation statistics (registered, attended, etc.)
+     */
+    public Map<String, Long> fetchEventParticipationStats(EventId eventId) {
+        try {
+            return eventContextFacade.getEventParticipationStats(eventId.value());
+        } catch (Exception e) {
+            // Fallback to minimal participation stats if event context is not available
+            return Map.of(
+                "registered", 0L,  // Default to 0 if we can't get real data
+                "attended", 0L,
+                "no_show", 0L
+            );
+        }
+    }
+
     // Private helper methods for fallback data
     private Optional<ExternalContentInfo> getMockAnnouncementInfo(AnnouncementId announcementId) {
         return Optional.of(new ExternalContentInfo(
