@@ -22,4 +22,22 @@ public interface ProfileContextFacade {
      * @return true if user has a profile
      */
     boolean userHasProfile(String userIdStr);
+    
+    /**
+     * Get profile information by user ID
+     * @param userIdStr the user ID from IAM context as string (UUID)
+     * @return Optional with profile data (firstName, lastName, email, department, position)
+     */
+    java.util.Optional<ProfileData> getProfileByUserId(String userIdStr);
+    
+    /**
+     * Profile data record for external access
+     */
+    record ProfileData(
+        String firstName,
+        String lastName,
+        String email,
+        String department,
+        String position
+    ) {}
 }
