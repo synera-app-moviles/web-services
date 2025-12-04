@@ -37,4 +37,10 @@ public interface UserQueryService {
      */
     Optional<User> handle(GetUserByUsernameQuery query);
 
+    /**
+     * Get total count of users in the system
+     * @return Total user count
+     */
+    long getTotalUserCount();
+
 }
